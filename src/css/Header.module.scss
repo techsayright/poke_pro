@@ -1,0 +1,17 @@
+.nav {
+  padding: 10px;
+
+  a {
+    text-decoration: none;
+    margin: 0 10px;
+    color: grey;
+    font-size: large;
+    &:hover {
+      color: black;
+    }
+  }
+  .active {
+    color: black;
+    text-decoration: underline;
+  }
+}
