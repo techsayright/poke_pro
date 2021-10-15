@@ -3,55 +3,88 @@ import React, { useEffect, useState } from "react";
 import { Button } from "react-bootstrap";
 import PokemonList from "../components/PokemonList";
 import Loader from "../assests/loader/Dual Ball.png";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  addPokeData,
+  pokeUrlAction,
+  preUrlAction,
+  runAPIAction,
+} from "../redux/action/pokeAction";
 
 export default function Pokemon() {
-  const [pokemonList, setPokemonList] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [currentUrl, setCurrentUrl] = useState(
-    "https://pokeapi.co/api/v2/pokemon?limit=20"
-  );
+  const [loading, setLoading] = useState(null);
+  const [err, setErr] = useState(null);
   const [nextUrl, setNextUrl] = useState(null);
-  const [preUrl, setPreUrl] = useState(null);
 
+  const dispatch = useDispatch();
+
+  const CurrentUrl = useSelector((state) => state.url.CurrentUrl);
+  const isItTimeToRunAPI = useSelector((state) => state.url.isItTimeToRunAPI);
+  const pokemonList = useSelector((state) => state.url.pokeData);
+  const preUrl = useSelector((state) => state.url.preUrl);
+
+  /******************* 
+    @Purpose : fetching data only when first time page render and current url changed
+    @Parameter : {}
+    @Author : DARSH
+    ******************/
   useEffect(() => {
+    if (!isItTimeToRunAPI) {
+      return;
+    }
+    setErr(null);
     setLoading(true);
     let cancel;
     axios
-      .get(currentUrl, {
+      .get(CurrentUrl || "https://pokeapi.co/api/v2/pokemon?limit=20", {
         cancelToken: new axios.CancelToken((c) => (cancel = c)),
       })
       .then((res) => {
-        console.log(res.data);
+        // console.log(res.data);
         setNextUrl(res.data.next);
-        setPreUrl(res.data.previous);
+        dispatch(preUrlAction(res.data.previous));
 
         let tempAry = [];
         res.data.results.forEach((element) => {
           axios.get(element.url).then((res) => {
             // console.log(res.data);
             tempAry.push(res.data);
-            setPokemonList([...tempAry]);
+            dispatch(addPokeData(tempAry));
           });
         });
         setLoading(false);
+        dispatch(runAPIAction(false));
       })
       .catch((err) => {
         setLoading(false);
-        console.log(err);
+        // console.log(err.message);
+        setErr(err.message);
       });
 
     return () => cancel();
-  }, [currentUrl]);
+  }, [CurrentUrl, isItTimeToRunAPI, dispatch]);
 
+  /******************* 
+    @Purpose : change current url to nexturl
+    @Parameter : {}
+    @Author : DARSH
+    ******************/
   const nextUrlFetch = () => {
-    setCurrentUrl(nextUrl);
+    dispatch(runAPIAction(true));
+    dispatch(pokeUrlAction(nextUrl));
   };
 
+  /******************* 
+    @Purpose : change current url to pre url
+    @Parameter : {}
+    @Author : DARSH
+    ******************/
   const preUrlFetch = () => {
-    setCurrentUrl(preUrl);
+    dispatch(runAPIAction(true));
+    dispatch(pokeUrlAction(preUrl));
   };
 
-  if (loading || pokemonList.length === 0) {
+  if ((loading || pokemonList.length === 0) && !err) {
     return (
       <div
         style={{
@@ -66,7 +99,9 @@ export default function Pokemon() {
       </div>
     );
   } else {
-    return (
+    return err ? (
+      <h1 className="text-center">{err}</h1>
+    ) : (
       <React.Fragment>
         <div
           style={{

@@ -3,7 +3,7 @@ import { Nav, Navbar } from "react-bootstrap";
 import { NavLink } from "react-router-dom";
 import styles from "../../css/Header.module.scss";
 
-export default function Header() {
+function Header() {
   return (
     <div>
       <Navbar className={styles.nav} bg="light" fixed="top" expand="lg">
@@ -28,3 +28,5 @@ export default function Header() {
     </div>
   );
 }
+
+export default React.memo(Header);

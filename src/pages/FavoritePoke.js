@@ -3,10 +3,13 @@ import { Card } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router";
 import { RmvFrmFav } from "../redux/action/FavouriteAction";
+import { particularPokoAddedAction } from "../redux/action/particularAddedAction";
+import Zoom from "react-reveal/Zoom";
 
-export default function FavoritePoke() {
-  const favData = useSelector((state) => state.fav.favData);
+function FavoritePoke() {
   const history = useHistory();
+
+  const favData = useSelector((state) => state.fav.favData);
   const dispatch = useDispatch();
 
   let content = null;
@@ -25,28 +28,36 @@ export default function FavoritePoke() {
         {favData.map((poke, index) => {
           console.log(poke);
           return (
-            <Card
-              key={index}
-              style={{ width: "18rem", cursor: "pointer" }}
-              onClick={() => history.push(`/pokemon/${poke.id}`)}
-            >
-              <Card.Img variant="top" src={poke.image} />
-              <Card.Body>
-                <Card.Title>
-                  {" "}
-                  {poke.name.charAt(0).toUpperCase() + poke.name.slice(1)}
-                </Card.Title>
-                <button
-                  className="btn btn-danger"
-                  onClick={(e) => {
-                    dispatch(RmvFrmFav(poke.id));
-                    e.stopPropagation();
-                  }}
-                >
-                  Remove From Favourite
-                </button>
-              </Card.Body>
-            </Card>
+            <Zoom bottom>
+              <Card
+                key={index}
+                style={{ width: "18rem", cursor: "pointer" }}
+                onClick={() => history.push(`/pokemon/${poke.id}`)}
+              >
+                <Card.Img variant="top" src={poke.image} />
+                <Card.Body>
+                  <Card.Title>
+                    {" "}
+                    {poke.name.charAt(0).toUpperCase() + poke.name.slice(1)}
+                  </Card.Title>
+                  <button
+                    className="btn btn-danger"
+                    /******************* 
+                  @Purpose : remove fav 
+                  @Parameter : {e}
+                  @Author : DARSH
+                  ******************/
+                    onClick={(e) => {
+                      dispatch(RmvFrmFav(poke.id));
+                      dispatch(particularPokoAddedAction(poke.id));
+                      e.stopPropagation();
+                    }}
+                  >
+                    Remove From Favourite
+                  </button>
+                </Card.Body>
+              </Card>
+            </Zoom>
           );
         })}
       </div>
@@ -55,3 +66,5 @@ export default function FavoritePoke() {
 
   return content;
 }
+
+export default React.memo(FavoritePoke);
